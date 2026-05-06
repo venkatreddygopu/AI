@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+  
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Do Not Disturb Me</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #060b1a;
+      --bg2: #111936;
+      --card: rgba(20, 30, 58, 0.65);
+      --text: #eef4ff;
+      --subtle: #bfd0ff;
+      --accent: #69f0ae;
+      --accent2: #7dd3fc;
+      --warn: #ff6b6b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      color: var(--text);
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background:
+        radial-gradient(circle at 15% 20%, rgba(89, 156, 255, 0.25), transparent 40%),
+        radial-gradient(circle at 80% 10%, rgba(105, 240, 174, 0.2), transparent 35%),
+        linear-gradient(140deg, var(--bg), var(--bg2));
+      overflow: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: -30%;
+      background:
+        radial-gradient(circle, rgba(125, 211, 252, 0.1) 0%, transparent 55%),
+        radial-gradient(circle at 70% 40%, rgba(105, 240, 174, 0.14) 0%, transparent 45%);
+      animation: floatGlow 14s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+
+    @keyframes floatGlow {
+      from {
+        transform: translate(-3%, -2%) scale(1);
+      }
+      to {
+        transform: translate(4%, 3%) scale(1.06);
+      }
+    }
+
+    .card {
+      width: min(640px, 92vw);
+      padding: 2rem 2rem 1.75rem;
+      border-radius: 24px;
+      background: var(--card);
+      border: 1px solid rgba(191, 208, 255, 0.25);
+      text-align: center;
+      box-shadow:
+        0 22px 60px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(10px);
+      z-index: 1;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.75rem, 4vw, 2.25rem);
+      letter-spacing: 0.4px;
+    }
+
+    .subtitle {
+      margin: 0.65rem 0 1.4rem;
+      color: var(--subtle);
+      font-size: 1rem;
+    }
+
+    .timer {
+      margin: 0.4rem 0 1rem;
+      font-size: clamp(2.8rem, 12vw, 4rem);
+      line-height: 1;
+      font-weight: 800;
+      color: var(--accent);
+      text-shadow: 0 0 24px rgba(105, 240, 174, 0.28);
+    }
+
+    .status {
+      margin: 0.5rem 0 0.8rem;
+      font-size: 0.98rem;
+      color: #d8e4ff;
+    }
+
+    .status.alert {
+      color: var(--warn);
+      font-weight: 700;
+    }
+
+    .quote-box {
+      margin-top: 1rem;
+      padding: 1rem 1.1rem;
+      border-radius: 14px;
+      background: rgba(125, 211, 252, 0.09);
+      border: 1px solid rgba(125, 211, 252, 0.28);
+    }
+
+    .quote-title {
+      margin: 0 0 0.45rem;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 1.1px;
+      color: var(--accent2);
+      font-weight: 700;
+    }
+
+    .quote {
+      margin: 0;
+      color: #f4f8ff;
+      font-size: 1.03rem;
+      line-height: 1.45;
+      min-height: 1.4em;
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Do Not Disturb Me</h1>
+    <p class="subtitle">Focus mode with a 3-minute inactivity timer.</p>
+    <div id="timer" class="timer">03:00</div>
+    <p id="status" class="status">Move mouse or press any key to restart timer.</p>
+    <section class="quote-box" aria-live="polite">
+      <p class="quote-title">Positive Boost</p>
+      <p id="quote" class="quote">You are doing better than you think.</p>
+    </section>
+  </main>
+
+  <script>
+    const START_SECONDS = 3 * 60;
+    let remainingSeconds = START_SECONDS;
+    let intervalId = null;
+
+    const timerEl = document.getElementById("timer");
+    const statusEl = document.getElementById("status");
+    const quoteEl = document.getElementById("quote");
+    const quotes = [
+      "Small progress every day adds up to big results.",
+      "Your calm focus is your superpower.",
+      "You can do hard things, one step at a time.",
+      "Every reset is a fresh chance to shine.",
+      "Discipline today creates freedom tomorrow.",
+      "Your consistency is building something amazing.",
+      "You are capable, prepared, and improving daily.",
+      "Stay patient. Great things take focused time.",
+      "One focused session can change your whole day.",
+      "You are stronger than distractions."
+    ];
+    let lastQuoteIndex = -1;
+
+    function formatTime(totalSeconds) {
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      return String(minutes).padStart(2, "0") + ":" + String(seconds).padStart(2, "0");
+    }
+
+    function render() {
+      timerEl.textContent = formatTime(remainingSeconds);
+    }
+
+    function setRandomQuote() {
+      let nextIndex = Math.floor(Math.random() * quotes.length);
+      if (quotes.length > 1) {
+        while (nextIndex === lastQuoteIndex) {
+          nextIndex = Math.floor(Math.random() * quotes.length);
+        }
+      }
+      lastQuoteIndex = nextIndex;
+      quoteEl.textContent = quotes[nextIndex];
+    }
+
+    function resetTimer() {
+      remainingSeconds = START_SECONDS;
+      statusEl.textContent = "Activity detected. Timer restarted to 03:00.";
+      statusEl.classList.remove("alert");
+      setRandomQuote();
+      render();
+    }
+
+    function tick() {
+      if (remainingSeconds > 0) {
+        remainingSeconds -= 1;
+        render();
+      } else {
+        statusEl.textContent = "No activity for 3 minutes.";
+        statusEl.classList.add("alert");
+      }
+    }
+
+    function start() {
+      render();
+      setRandomQuote();
+      if (intervalId) clearInterval(intervalId);
+      intervalId = setInterval(tick, 1000);
+    }
+
+    window.addEventListener("mousemove", resetTimer, { passive: true });
+    window.addEventListener("keydown", resetTimer);
+
+    start();
+  </script>
+</body>
+</html>
